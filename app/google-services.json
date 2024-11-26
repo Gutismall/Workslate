@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "796952286455",
+    "project_id": "workslate-1e401",
+    "storage_bucket": "workslate-1e401.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796952286455:android:87b6542c8ce56a79e4eff2",
+        "android_client_info": {
+          "package_name": "com.example.workslateapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAo3P5YMkil4p8k6WFgZtO-qXlE7UC-BsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
