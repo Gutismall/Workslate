@@ -7,9 +7,9 @@
         android:title="@string/title_home"/>
 
     <item
-        android:id="@+id/navigation_calendar"
+        android:id="@+id/navigation_constraints"
         android:icon="@drawable/ic_calendar_item"
-        android:title="@string/title_calendar"/>
+        android:title="@string/constraints"/>
 
     <item
         android:id="@+id/navigation_log"

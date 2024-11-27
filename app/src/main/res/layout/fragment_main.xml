@@ -2,8 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/Fragment_Main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:fillViewport="true"
     tools:context=".Fragments.MainFragment">
 
@@ -26,25 +26,35 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="10dp"
             android:background="@color/black"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Title" />
 
-        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
-            android:id="@+id/Fragment_Main_Calendar"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/Fragment_Main_CalendarCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_margin="10dp"
+            app:cardElevation="10dp"
+            android:backgroundTint="@color/brown_buttons"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Title"
-            app:mcv_arrowColor="@color/black"
-            app:mcv_firstDayOfWeek="sunday"
-            app:mcv_dateTextAppearance="@style/CustomDateText"
-            app:mcv_selectionColor="@color/brown_buttons"
-            app:mcv_showOtherDates="none" />
+            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Title">
+
+            <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+                android:id="@+id/Fragment_Main_Calendar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:background="@color/white"
+                app:mcv_arrowColor="@color/black"
+                app:mcv_firstDayOfWeek="sunday"
+                app:mcv_dateTextAppearance="@style/CustomDateText"
+                app:mcv_selectionColor="@color/brown_buttons"
+                app:mcv_showOtherDates="none" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <View
             android:layout_width="match_parent"
@@ -53,58 +63,152 @@
             android:background="@color/black"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Calendar" />
+            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_CalendarCard" />
 
-<!--        <TextView-->
-<!--            android:id="@+id/Fragment_Main_CurrentWeekShiftsTitle"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginStart="20dp"-->
-<!--            android:layout_marginTop="20dp"-->
-<!--            android:fontFamily="@font/font_title_bold"-->
-<!--            android:text="Current Week Shifts"-->
-<!--            android:textSize="@dimen/mini_titles_size"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Calendar" />-->
-
-<!--        <ListView-->
-<!--            android:id="@+id/Fragment_Main_ListOfCurrentWeekShifts"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_CurrentWeekShiftsTitle" >-->
-
-<!--        </ListView>-->
-
-<!--        <View-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="1dp"-->
-<!--            android:layout_marginTop="10dp"-->
-<!--            android:background="@color/black"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_ListOfCurrentWeekShifts" />-->
 
         <TextView
             android:id="@+id/Fragment_Main_SelectedDateShifts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"
             android:fontFamily="@font/font_title_bold"
             android:text="Selected Date"
             android:textSize="@dimen/mini_titles_size"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_Calendar" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/Fragment_Main_CalendarCard" />
 
-        <ListView
-            android:id="@+id/Fragment_Main_SelectedDateShiftsNamesList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             app:layout_constraintTop_toBottomOf="@id/Fragment_Main_SelectedDateShifts"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No Shifts Yet"
+                android:textSize="25sp"
+                android:fontFamily="@font/font_titles"
+                android:layout_gravity="center"/>
+
+            <LinearLayout
+                android:id="@+id/Fragment_Main_LL_ShiftCards"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/Fragment_Main_MorningShiftCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:backgroundTint="@color/brown_buttons"
+                    app:cardElevation="10dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:padding="10dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginEnd="10dp"
+                            android:src="@drawable/ic_morning" />
+
+                        <TextView
+                            android:id="@+id/Fragment_Main_MorningShiftCard_Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/font_title_bold"
+                            android:text="Item Title"
+                            android:textColor="@android:color/black"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/Fragment_Main_AfternoonShiftCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:backgroundTint="@color/brown_buttons"
+                    app:cardElevation="10dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:padding="10dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginEnd="10dp"
+                            android:src="@drawable/ic_evening" />
+
+                        <TextView
+                            android:id="@+id/Fragment_Main_AfternoonShiftCard_Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/font_title_bold"
+                            android:text="Item Title"
+                            android:textColor="@android:color/black"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/Fragment_Main_NightShiftCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:backgroundTint="@color/brown_buttons"
+                    app:cardElevation="10dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:padding="10dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginEnd="10dp"
+                            android:src="@drawable/ic_night" />
+
+                        <TextView
+                            android:id="@+id/Fragment_Main_NightShiftCard_Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/font_title_bold"
+                            android:text="Item Title"
+                            android:textColor="@android:color/black"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+
+
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

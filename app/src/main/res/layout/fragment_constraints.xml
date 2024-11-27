@@ -11,8 +11,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:id="@+id/Fragment_Constraints_Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Constraints Yet"
+            android:textSize="25sp"
+            android:fontFamily="@font/font_title_bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
         <TableLayout
-            android:id="@+id/tableLayout"
+            android:id="@+id/Fragment_Constraints_TableLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="20dp"
@@ -307,7 +319,7 @@
             android:fontFamily="@font/font_title_bold"
             android:backgroundTint="@color/brown_buttons"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tableLayout"
+            app:layout_constraintTop_toBottomOf="@id/Fragment_Constraints_TableLayout"
             app:layout_constraintEnd_toEndOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

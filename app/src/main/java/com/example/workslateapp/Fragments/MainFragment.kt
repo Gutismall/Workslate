@@ -2,7 +2,6 @@ package com.example.workslateapp.Fragments
 
 import CalendarDecorator
 import DatabaseManeger
-import SelectedDateShiftsListAdapter
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.workslateapp.databinding.FragmentMainBinding
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 
@@ -17,10 +17,14 @@ class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
+    private lateinit var  calendarDecorator: CalendarDecorator
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DatabaseManeger.getUserShifts(getCurrentWeekDays()) { currentWeekShifts ->
+            calendarDecorator = CalendarDecorator(currentWeekShifts, requireContext())
+        }
     }
 
     override fun onCreateView(
@@ -34,16 +38,22 @@ class MainFragment : Fragment() {
 
 
     private fun initViews() {
-        DatabaseManeger.getUserShifts(getCurrentWeekDays()) { currentWeekShifts ->
-            binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentWeekShifts.map { it.first }, requireContext()))
-        }
+//        binding.FragmentMainCalendar.addDecorator(calendarDecorator)
         binding.FragmentMainCalendar.setOnDateChangedListener { _, date, selected ->
             if (selected) {
-                // Fetch names of shifts for the selected date
-                DatabaseManeger.getNamesOfShift(date.date) { shiftNames ->
-                    // Update the title and the ListView with the shift data
-                    binding.FragmentMainSelectedDateShifts.text = "Selected Date: ${date}"
-                    binding.FragmentMainListOfWeekShifts.adapter = SelectedDateShiftsListAdapter(requireContext(), shiftNames)
+                DatabaseManeger.getArrangementByDate(date.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) { shiftNames ->
+                    if (shiftNames.isNotEmpty())
+                    {
+                        binding.FragmentMainLLShiftCards.visibility = View.VISIBLE
+                        binding.FragmentMainSelectedDateShifts.text = "Selected Date: ${date.day}/${date.month}/${date.year}"
+                        binding.FragmentMainMorningShiftCardName.text = "Morning Shift: ${shiftNames[0]}"
+                        binding.FragmentMainAfternoonShiftCardName.text = "Morning Shift: ${shiftNames[1]}"
+                        binding.FragmentMainNightShiftCardName.text = "Morning Shift: ${shiftNames[2]}"
+                    }
+                    else{
+                        binding.FragmentMainLLShiftCards.visibility = View.INVISIBLE
+
+                    }
                 }
             }
         }

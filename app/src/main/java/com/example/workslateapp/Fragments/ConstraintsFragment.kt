@@ -7,9 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
+import android.widget.Toast
 import com.example.workslateapp.R
 import com.example.workslateapp.databinding.FragmentCalendarBinding
 import com.example.workslateapp.databinding.FragmentConstraintsBinding
+import java.time.LocalDate
+import java.util.Calendar
 
 
 class ConstraintsFragment : Fragment() {
@@ -32,19 +35,24 @@ class ConstraintsFragment : Fragment() {
     }
 
     private fun initView() {
-        val matrix = Array(7) { Array(3) { false } }
-        if (view is ViewGroup) {
-            for (i in 0 until binding.root.childCount) {
-                val child = binding.root.getChildAt(i)
-                if (child is RadioButton) {
-                    matrix[i/3][i%3] = child.isChecked
+        binding.FragmentConstraintsText.visibility = View.INVISIBLE
+        val todaysDay = LocalDate.now().dayOfWeek.value
+        if (todaysDay in 1..4){
+            binding.FragmentConstraintsTableLayout.visibility = View.INVISIBLE
+            binding.FragmentConstraintsText.visibility = View.VISIBLE
+        }
+        else{
+            val matrix = Array(7) { Array(3) { false } }
+            if (view is ViewGroup) {
+                for (i in 0 until binding.root.childCount) {
+                    val child = binding.root.getChildAt(i)
+                    if (child is RadioButton) {
+                        matrix[i/3][i%3] = child.isChecked
+                    }
                 }
             }
+            binding.FragmentConstraintsSubmitBtn.setOnClickListener { DatabaseManeger.updateConstraints()}
+            Toast.makeText(context, "Constraints Sent", Toast.LENGTH_SHORT).show()
         }
-        binding.FragmentConstraintsSubmitBtn.setOnClickListener { DatabaseManeger.updateConstraints()}
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.Main_Fragment,CalendarFragment())
-            .commit()
     }
-
 }

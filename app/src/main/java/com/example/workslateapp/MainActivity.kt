@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.workslateapp.Fragments.AccountFragment
 import com.example.workslateapp.Fragments.CalendarFragment
+import com.example.workslateapp.Fragments.ConstraintsFragment
 import com.example.workslateapp.Fragments.LogFragment
 import com.example.workslateapp.Fragments.MainFragment
 import com.example.workslateapp.Fragments.MassagesFragment
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             var fragment: Fragment? = null
             when (item.itemId) {
                 R.id.navigation_home -> fragment = MainFragment()
-                R.id.navigation_calendar -> fragment = CalendarFragment()
+                R.id.navigation_constraints -> fragment = ConstraintsFragment()
                 R.id.navigation_log -> fragment = LogFragment()
                 R.id.navigation_Massages -> fragment = MassagesFragment()
             }
@@ -64,8 +65,8 @@ class MainActivity : AppCompatActivity() {
         transaction.setCustomAnimations(
             android.R.anim.slide_in_left,  // Enter animation
             android.R.anim.slide_out_right, // Exit animation
-            android.R.anim.fade_in, // Pop Enter animation (when coming back)
-            android.R.anim.fade_out // Pop Exit animation (when going back)
+            R.anim.fade_in, // Pop Enter animation (when coming back)
+            R.anim.fade_out // Pop Exit animation (when going back)
         )
         transaction.commit()
     }

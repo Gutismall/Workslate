@@ -1,7 +1,5 @@
 package com.example.workslateapp.Fragments
 
-import CurrentWeekListAdapter
-import SelectedDateShiftsListAdapter
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -55,22 +53,5 @@ class CalendarFragment : Fragment() {
             .addToBackStack(null)
             .commit()
     }
-
-//    private fun selectedDayShifts(selectedDate: CalendarDay) {
-//        DatabaseManeger.getDateShifts(
-//            LocalDate.of(
-//                selectedDate.year,
-//                selectedDate.month,
-//                selectedDate.day
-//            )
-//        ) { selectedShifts ->
-//            if (selectedShifts != null) {
-//                calendar_selected_date_title.text = "Selected Date : ${selectedDate.toString()}"
-//                calendar_list_selected_date.adapter = SelectedDateShiftsListAdapter(requireContext(),selectedShifts)
-//            } else {
-//                // Handle the case where no shift is found
-//            }
-//        }
-//    }
 
 }
