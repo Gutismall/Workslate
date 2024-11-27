@@ -1,4 +1,4 @@
-import android.text.Editable
+
 import android.util.Log
 import com.example.workslateapp.DataClasses.Shift
 import com.example.workslateapp.DataClasses.ShiftType
@@ -6,43 +6,20 @@ import com.example.workslateapp.DataClasses.User
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
-import com.google.firebase.firestore.DocumentSnapshot
+
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
+
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
-import java.time.DayOfWeek
+import kotlinx.coroutines.tasks.await
+
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.temporal.TemporalAdjusters
-import java.util.Date
+
 
 object DatabaseManeger {
 
     private val auth = FirebaseAuth.getInstance()
-
-
-    fun initUser() {
-        val db = FirebaseFirestore.getInstance()
-        val currentUser = auth.currentUser
-
-        currentUser?.let { user ->
-            val userDoc = db.collection("users").document(user.uid)
-            userDoc.get().addOnSuccessListener { result ->
-                if (result.data?.isEmpty() == true)
-                    return@addOnSuccessListener
-                userDoc.update(
-                    mapOf(
-                        "firstName" to "",
-                        "LastName" to "",
-                        "phoneNumber" to "",
-                        "dateOfBirth" to ""
-                    )
-                )
-            }
-        }
-    }
 
     // Add a shift for a user
     fun addLogInShift(date: Timestamp, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
@@ -71,11 +48,7 @@ object DatabaseManeger {
     }
 
     // Add a log out shift
-    fun addLogOutShift(
-        date: Timestamp,
-        location: GeoPoint,
-        onComplete: (Boolean, String?) -> Unit
-    ) {
+    fun addLogOutShift(date: Timestamp, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         currentUser?.let { user ->
@@ -101,46 +74,6 @@ object DatabaseManeger {
         }
     }
 
-//    fun getCurrentWeekShifts(onComplete: (List<Shift>) -> Unit) {
-//        val db = FirebaseFirestore.getInstance()
-//        val currentUser = auth.currentUser
-//
-//        currentUser?.let { user ->
-//            val userId = user.uid
-//
-//            // Get current date and calculate start and end of the current week
-//            val currentDate = LocalDate.now()
-//            val startOfWeek = currentDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
-//            val endOfWeek = currentDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
-//
-//            // Convert LocalDate to Date (which Firestore Timestamp requires)
-//            val startOfWeekDate =
-//                Date.from(startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
-//            val endOfWeekDate =
-//                Date.from(endOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
-//
-//            // Query Firestore for shifts within this date range based on logInTimestamp
-//            db.collection("Users")
-//                .document(userId)
-//                .collection("Shifts")
-//                .whereGreaterThanOrEqualTo("LogInDate", Timestamp(startOfWeekDate))
-//                .whereLessThanOrEqualTo("LogOutDate", Timestamp(endOfWeekDate))
-//                .get()
-//                .addOnSuccessListener { result ->
-//                    // Convert documents to a list of Shift objects
-//                    val shifts = result.documents.mapNotNull { document ->
-//                        document.toObject(Shift::class.java)
-//                    }
-//                    onComplete(shifts)
-//                }
-//                .addOnFailureListener { exception ->
-//                    // Handle failure and return an empty list
-//                    onComplete(emptyList())
-//                    println("Error getting shifts: ${exception.message}")
-//                }
-//        }
-//    }
-
     private fun shiftTypeIndicator(): Int {
         when (LocalTime.now()) {
             in LocalTime.of(6, 0)..LocalTime.of(14, 0) -> return 1
@@ -152,11 +85,7 @@ object DatabaseManeger {
 
     //write me a function that will get all the users personal information
     fun getUser(onComplete: (User?) -> Unit) {
-        val db = FirebaseFirestore.getInstance().apply {
-            firestoreSettings = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
-        }
+        val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         currentUser?.let { user ->
             val userId = user.uid
@@ -179,56 +108,33 @@ object DatabaseManeger {
         }
     }
 
-    fun getUserShifts(dates: List<LocalDate>, onComplete: (List<LocalDate>) -> Unit) {
+    suspend fun getUserShifts(dates: List<LocalDate>): List<LocalDate> {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         val listOfShifts = mutableListOf<LocalDate>()
 
-
         for (date in dates) {
-            val year = date.year.toString()
-            val month = date.monthValue.toString()
-            val day = date.dayOfMonth.toString()
+            try {
+                val day = db.collection("Arrangements")
+                    .document(date.year.toString())
+                    .collection(date.monthValue.toString())
+                    .document(date.dayOfMonth.toString())
+                    .get()
+                    .await()
 
-            val path = db.collection("Arrangements").document("2024")
-                .collection("11").document("24")
-
-//            path.update("Names", listOf("Bob", "Ari", "Dod")) // Using listOf() for Firestore
-//                .addOnSuccessListener {
-//                    Log.d("Firestore", "Names updated successfully")
-//                }
-//                .addOnFailureListener { e ->
-//                    Log.w("Firestore", "Error updating names: ", e)
-//                }
-
-            path.get()
-                .addOnSuccessListener { document ->
-                        val names = document.get("Names") as? List<String>
-                        if (names != null) {
-                            for (name in names) {
-                                if (name == currentUser?.displayName) {
-                                    listOfShifts.add(date)
-                                }
-                            }
-                        } else {
-                            Log.d("Firestore", "Names field is not a list or is null")
-                        }
-
-                        // If we are done iterating over the dates, invoke the callback
-                        if (date == dates.last()) {
-                            onComplete(listOfShifts)
-                        }
+                if (day.exists()) {
+                    val names = day.get("Names") as? List<String> ?: emptyList()
+                    if (names.contains(currentUser?.displayName)) {
+                        listOfShifts.add(date)
                     }
-                    .addOnFailureListener { exception ->
-                        Log.w("Firestore", "Error getting document: ", exception)
-
-                        // If there's an error and we're on the last date, invoke the callback
-                        if (date == dates.last()) {
-                            onComplete(listOfShifts)
-                        }
-                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Firestore", "Error fetching document: ${e.message}")
+            }
         }
+        return listOfShifts
     }
+
 
 
 
@@ -248,7 +154,7 @@ object DatabaseManeger {
         .addOnFailureListener {
             onComplete(emptyList())
         }
-}
+    }
 
     fun getLastShifts(numberOfLogs: Long): List<Shift> {
         var lastLog = mutableListOf<Shift>()
