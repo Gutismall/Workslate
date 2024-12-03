@@ -13,7 +13,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
 import java.time.LocalDate
@@ -24,43 +23,20 @@ object DatabaseManeger {
 
     private val auth = FirebaseAuth.getInstance()
 
-
-    fun initUser() {
-        val db = FirebaseFirestore.getInstance()
-        val currentUser = auth.currentUser
-
-        currentUser?.let { user ->
-            val userDoc = db.collection("users").document(user.uid)
-            userDoc.get().addOnSuccessListener { result ->
-                if (result.data?.isEmpty() == true)
-                    return@addOnSuccessListener
-                userDoc.update(
-                    mapOf(
-                        "firstName" to "",
-                        "LastName" to "",
-                        "phoneNumber" to "",
-                        "dateOfBirth" to ""
-                    )
-                )
-            }
-        }
-    }
-
     // Add a shift for a user
-    fun addLogInShift(date: Timestamp, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
+    fun addLogInShift(date: LocalDate, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         currentUser?.let { user ->
             val userId = user.uid
-
-            // Shift data with combined date, time, and location
-            val shiftData = hashMapOf(
-                "shiftType" to shiftTypeIndicator(),
-                "dateTime" to date,
-                "location" to location
+            val data = mapOf(
+                "Date.LogIn" to Timestamp.now(),
+                "Location.LogIn" to location
             )
             // Add log in shift to the 'logInShifts' subcollection
-            db.collection("users").document(userId).collection("logInShifts").add(shiftData)
+            db.collection("users").document(userId).collection("Shifts")
+                .document(date.year.toString()).collection(date.monthValue.toString())
+                .document(date.dayOfMonth.toString()).set(data)
                 .addOnSuccessListener {
                     onComplete(true, null)
                 }
@@ -73,25 +49,20 @@ object DatabaseManeger {
     }
 
     // Add a log out shift
-    fun addLogOutShift(
-        date: Timestamp,
-        location: GeoPoint,
-        onComplete: (Boolean, String?) -> Unit
-    ) {
+    fun addLogOutShift(date: LocalDate, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         currentUser?.let { user ->
             val userId = user.uid
-
-            // Shift data with combined date, time, and location
-            val shiftData = hashMapOf(
-                "shiftType" to shiftTypeIndicator(),
-                "dateTime" to date,
-                "location" to location
+            val data = mapOf(
+                "Date.LogOut" to Timestamp.now(),
+                "Location.LogOut" to location
             )
 
             // Add log out shift to the 'logOutShifts' subcollection
-            db.collection("users").document(userId).collection("logOutShifts").add(shiftData)
+            db.collection("users").document(userId).collection("Shifts")
+                .document(date.year.toString()).collection(date.monthValue.toString())
+                .document(date.dayOfMonth.toString()).set(data)
                 .addOnSuccessListener {
                     onComplete(true, null)
                 }
@@ -100,55 +71,6 @@ object DatabaseManeger {
                 }
         } ?: run {
             onComplete(false, "User not authenticated.")
-        }
-    }
-
-//    fun getCurrentWeekShifts(onComplete: (List<Shift>) -> Unit) {
-//        val db = FirebaseFirestore.getInstance()
-//        val currentUser = auth.currentUser
-//
-//        currentUser?.let { user ->
-//            val userId = user.uid
-//
-//            // Get current date and calculate start and end of the current week
-//            val currentDate = LocalDate.now()
-//            val startOfWeek = currentDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
-//            val endOfWeek = currentDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
-//
-//            // Convert LocalDate to Date (which Firestore Timestamp requires)
-//            val startOfWeekDate =
-//                Date.from(startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
-//            val endOfWeekDate =
-//                Date.from(endOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
-//
-//            // Query Firestore for shifts within this date range based on logInTimestamp
-//            db.collection("Users")
-//                .document(userId)
-//                .collection("Shifts")
-//                .whereGreaterThanOrEqualTo("LogInDate", Timestamp(startOfWeekDate))
-//                .whereLessThanOrEqualTo("LogOutDate", Timestamp(endOfWeekDate))
-//                .get()
-//                .addOnSuccessListener { result ->
-//                    // Convert documents to a list of Shift objects
-//                    val shifts = result.documents.mapNotNull { document ->
-//                        document.toObject(Shift::class.java)
-//                    }
-//                    onComplete(shifts)
-//                }
-//                .addOnFailureListener { exception ->
-//                    // Handle failure and return an empty list
-//                    onComplete(emptyList())
-//                    println("Error getting shifts: ${exception.message}")
-//                }
-//        }
-//    }
-
-    private fun shiftTypeIndicator(): Int {
-        when (LocalTime.now()) {
-            in LocalTime.of(6, 0)..LocalTime.of(14, 0) -> return 1
-            in LocalTime.of(14, 0)..LocalTime.of(22, 0) -> return 2
-            in LocalTime.of(22, 0)..LocalTime.of(6, 0) -> return 3
-            else -> return 0
         }
     }
 
@@ -210,42 +132,6 @@ object DatabaseManeger {
                 onComplete(emptyList())
             }
     }
-//            path.update("Names", listOf("Bob", "Ari", "Dod")) // Using listOf() for Firestore
-//                .addOnSuccessListener {
-//                    Log.d("Firestore", "Names updated successfully")
-//                }
-//                .addOnFailureListener { e ->
-//                    Log.w("Firestore", "Error updating names: ", e)
-//                }
-
-//            path.get()
-//                .addOnSuccessListener { document ->
-//                        val names = document.get("Names") as? List<String>
-//                        if (names != null) {
-//                            for (name in names) {
-//                                if (name == currentUser?.displayName) {
-//                                    listOfShifts.add(date)
-//                                }
-//                            }
-//                        } else {
-//                            Log.d("Firestore", "Names field is not a list or is null")
-//                        }
-//
-//                        // If we are done iterating over the dates, invoke the callback
-//                        if (date == dates.last()) {
-//                            onComplete(listOfShifts)
-//                        }
-//                    }
-//                    .addOnFailureListener { exception ->
-//                        Log.w("Firestore", "Error getting document: ", exception)
-//
-//                        // If there's an error and we're on the last date, invoke the callback
-//                        if (date == dates.last()) {
-//                            onComplete(listOfShifts)
-//                        }
-//                    }
-
-
 
     fun getArrangementByDate(date: LocalDate, onComplete: (List<String>) -> Unit) {
     val db = FirebaseFirestore.getInstance()
@@ -402,7 +288,7 @@ object DatabaseManeger {
                 db.getReference(path)
                     .push()
                     .setValue(mapOf(
-                        "sender" to auth.currentUser?.uid,
+                        "sender" to user.name,
                         "message" to currentMessage,
                         "timestamp" to Timestamp.now().toString()
                     ))

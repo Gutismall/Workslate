@@ -1,15 +1,17 @@
 package com.example.workslateapp.Fragments
+
 import ChatAdapter
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.workslateapp.DataClasses.Message
-import com.example.workslateapp.databinding.FragmentMassagesBinding
+import com.example.workslateapp.databinding.FragmentMessagesBinding
 
 class MessagesFragment : Fragment() {
 
-    private var _binding: FragmentMassagesBinding? = null
+    private var _binding: FragmentMessagesBinding? = null
     private val binding get() = _binding!!
     private lateinit var chatAdapter: ChatAdapter
     private var messages = mutableListOf<Message>()
@@ -23,15 +25,16 @@ class MessagesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentMassagesBinding.inflate(inflater, container, false)
+        _binding = FragmentMessagesBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.FragmentMessagesChatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         chatAdapter = ChatAdapter(messages)
-        binding.FragmentMassagesChatRecyclerView.adapter = chatAdapter
+        binding.FragmentMessagesChatRecyclerView.adapter = chatAdapter
 
         // Fetch initial messages
         DatabaseManeger.fetchMessages { fetchedMessages ->
@@ -44,7 +47,7 @@ class MessagesFragment : Fragment() {
         DatabaseManeger.listenForNewMessages { newMessage ->
             messages.add(newMessage)
             chatAdapter.notifyItemInserted(messages.size - 1)
-            binding.FragmentMassagesChatRecyclerView.scrollToPosition(messages.size - 1)
+            binding.FragmentMessagesChatRecyclerView.scrollToPosition(messages.size - 1)
         }
 
         // Set up click listeners
@@ -52,7 +55,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun initView() {
-        binding.FragmentMessagesFABSend.setOnClickListener {
+        binding.FragmentMessagesFabSend.setOnClickListener {
             val currentMessage = binding.FragmentMessagesTextBox.text.toString()
             if (currentMessage.isBlank()) {
                 Toast.makeText(context, "Enter a message", Toast.LENGTH_SHORT).show()

@@ -23,7 +23,7 @@
             android:layout_marginBottom="20dp"
             android:hint="Email"
             app:boxStrokeColor="#A3A2A2"
-            app:boxStrokeWidth="3dp"
+            app:boxStrokeWidth="2dp"
             app:boxStrokeWidthFocused="3dp"
             app:cursorColor="#000000"
             app:endIconMode="clear_text"
