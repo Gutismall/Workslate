@@ -104,7 +104,8 @@
                     android:id="@+id/Fragment_Main_MorningShiftCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_marginHorizontal="40dp"
+                    android:layout_marginVertical="10dp"
                     android:backgroundTint="@color/brown_buttons"
                     app:cardElevation="10dp">
 
@@ -118,7 +119,8 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_marginEnd="10dp"
-                            android:src="@drawable/ic_morning" />
+                            android:src="@drawable/ic_morning"
+                            android:padding="2dp"/>
 
                         <TextView
                             android:id="@+id/Fragment_Main_MorningShiftCard_Name"
@@ -138,7 +140,8 @@
                     android:id="@+id/Fragment_Main_AfternoonShiftCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_marginHorizontal="40dp"
+                    android:layout_marginVertical="10dp"
                     android:backgroundTint="@color/brown_buttons"
                     app:cardElevation="10dp">
 
@@ -152,7 +155,8 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_marginEnd="10dp"
-                            android:src="@drawable/ic_evening" />
+                            android:src="@drawable/ic_evening"
+                            android:padding="2dp"/>
 
                         <TextView
                             android:id="@+id/Fragment_Main_AfternoonShiftCard_Name"
@@ -172,7 +176,8 @@
                     android:id="@+id/Fragment_Main_NightShiftCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_marginHorizontal="40dp"
+                    android:layout_marginVertical="10dp"
                     android:backgroundTint="@color/brown_buttons"
                     app:cardElevation="10dp">
 
@@ -186,7 +191,8 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_marginEnd="10dp"
-                            android:src="@drawable/ic_night" />
+                            android:src="@drawable/ic_night"
+                            android:padding="7dp"/>
 
                         <TextView
                             android:id="@+id/Fragment_Main_NightShiftCard_Name"

@@ -1,6 +1,7 @@
 [versions]
 agp = "8.5.2"
 firebaseBom = "33.4.0"
+firebaseBomVersion = "33.6.0"
 firebaseFirestoreKtx = "25.1.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -12,7 +13,6 @@ material = "1.12.0"
 constraintlayout = "2.1.4"
 lifecycleLivedataKtx = "2.8.6"
 lifecycleViewmodelKtx = "2.8.6"
-materialVersion = "1.9.0"
 navigationFragmentKtx = "2.8.2"
 navigationUiKtx = "2.8.2"
 activity = "1.9.2"
@@ -24,7 +24,9 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-bom-v3360 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+google-firebase-database = { module = "com.google.firebase:firebase-database" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

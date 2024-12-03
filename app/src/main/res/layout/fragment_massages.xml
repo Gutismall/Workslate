@@ -5,12 +5,67 @@
     android:id="@+id/frameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.MassagesFragment" >
+    tools:context=".Fragments.MessagesFragment" >
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/Fragment_Messages_CardText">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/Fragment_Massages_ChatRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </ScrollView>
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/Fragment_Messages_CardText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginHorizontal="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:cardBackgroundColor="@color/brown_buttons"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:padding="20dp">
+
+            <EditText
+                android:id="@+id/Fragment_Messages_TextBox"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_marginEnd="10dp"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:padding="12dp"
+                android:hint="Type Message"
+                android:background="@drawable/chat_input_background"/>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
+                android:id="@+id/Fragment_messages_FAB_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                app:maxImageSize="40dp"
+                app:backgroundTint="@color/black"
+                app:srcCompat="@drawable/ic_send"
+                app:tint="@color/white"/>
+
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

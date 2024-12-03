@@ -65,5 +65,7 @@ dependencies {
     implementation (libs.firebase.firestore.ktx)
     implementation (libs.material.calendarview)
     implementation (libs.play.services.maps)
+    implementation(libs.google.firebase.database)
+    implementation(platform(libs.firebase.bom.v3360))
 
 }

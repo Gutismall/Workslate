@@ -1,18 +1,21 @@
 
 import android.util.Log
+import com.example.workslateapp.DataClasses.Message
 import com.example.workslateapp.DataClasses.Shift
 import com.example.workslateapp.DataClasses.ShiftType
 import com.example.workslateapp.DataClasses.User
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
-
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
-
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
-import kotlinx.coroutines.tasks.await
-
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -20,6 +23,28 @@ import java.time.LocalTime
 object DatabaseManeger {
 
     private val auth = FirebaseAuth.getInstance()
+
+
+    fun initUser() {
+        val db = FirebaseFirestore.getInstance()
+        val currentUser = auth.currentUser
+
+        currentUser?.let { user ->
+            val userDoc = db.collection("users").document(user.uid)
+            userDoc.get().addOnSuccessListener { result ->
+                if (result.data?.isEmpty() == true)
+                    return@addOnSuccessListener
+                userDoc.update(
+                    mapOf(
+                        "firstName" to "",
+                        "LastName" to "",
+                        "phoneNumber" to "",
+                        "dateOfBirth" to ""
+                    )
+                )
+            }
+        }
+    }
 
     // Add a shift for a user
     fun addLogInShift(date: Timestamp, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
@@ -48,7 +73,11 @@ object DatabaseManeger {
     }
 
     // Add a log out shift
-    fun addLogOutShift(date: Timestamp, location: GeoPoint, onComplete: (Boolean, String?) -> Unit) {
+    fun addLogOutShift(
+        date: Timestamp,
+        location: GeoPoint,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         currentUser?.let { user ->
@@ -74,6 +103,46 @@ object DatabaseManeger {
         }
     }
 
+//    fun getCurrentWeekShifts(onComplete: (List<Shift>) -> Unit) {
+//        val db = FirebaseFirestore.getInstance()
+//        val currentUser = auth.currentUser
+//
+//        currentUser?.let { user ->
+//            val userId = user.uid
+//
+//            // Get current date and calculate start and end of the current week
+//            val currentDate = LocalDate.now()
+//            val startOfWeek = currentDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+//            val endOfWeek = currentDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
+//
+//            // Convert LocalDate to Date (which Firestore Timestamp requires)
+//            val startOfWeekDate =
+//                Date.from(startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
+//            val endOfWeekDate =
+//                Date.from(endOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant())
+//
+//            // Query Firestore for shifts within this date range based on logInTimestamp
+//            db.collection("Users")
+//                .document(userId)
+//                .collection("Shifts")
+//                .whereGreaterThanOrEqualTo("LogInDate", Timestamp(startOfWeekDate))
+//                .whereLessThanOrEqualTo("LogOutDate", Timestamp(endOfWeekDate))
+//                .get()
+//                .addOnSuccessListener { result ->
+//                    // Convert documents to a list of Shift objects
+//                    val shifts = result.documents.mapNotNull { document ->
+//                        document.toObject(Shift::class.java)
+//                    }
+//                    onComplete(shifts)
+//                }
+//                .addOnFailureListener { exception ->
+//                    // Handle failure and return an empty list
+//                    onComplete(emptyList())
+//                    println("Error getting shifts: ${exception.message}")
+//                }
+//        }
+//    }
+
     private fun shiftTypeIndicator(): Int {
         when (LocalTime.now()) {
             in LocalTime.of(6, 0)..LocalTime.of(14, 0) -> return 1
@@ -95,7 +164,7 @@ object DatabaseManeger {
                         email = user.email.toString(),
                         name = document.getString("name").orEmpty(),
                         phoneNumber = document.getString("phoneNumber").orEmpty(),
-                        CompanyCode = document.getString("companyCode").orEmpty()
+                        companyCode = document.getString("companyCode").orEmpty()
                     )
                     onComplete(userInfo)
                 }
@@ -108,33 +177,73 @@ object DatabaseManeger {
         }
     }
 
-    suspend fun getUserShifts(dates: List<LocalDate>): List<LocalDate> {
+    fun getUserShifts(curentDate: LocalDate,onComplete: (List<LocalDate>) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
-        val listOfShifts = mutableListOf<LocalDate>()
+        val listOfDates = mutableListOf<LocalDate>()
 
-        for (date in dates) {
-            try {
-                val day = db.collection("Arrangements")
-                    .document(date.year.toString())
-                    .collection(date.monthValue.toString())
-                    .document(date.dayOfMonth.toString())
-                    .get()
-                    .await()
+        val year = curentDate.year
+        val month = curentDate.monthValue
 
-                if (day.exists()) {
-                    val names = day.get("Names") as? List<String> ?: emptyList()
-                    if (names.contains(currentUser?.displayName)) {
-                        listOfShifts.add(date)
+        val path = db.collection("Arrangements").document(year.toString())
+            .collection(month.toString())
+
+        path.get()
+            .addOnSuccessListener { monthDates ->
+                if (monthDates != null) {
+                    monthDates.documents.forEach() { day ->
+                        val names = day.get("Names") as? List<String>
+                        if (names != null) {
+                            for (name in names) {
+                                if (name == currentUser?.displayName) {
+                                    listOfDates.add(LocalDate.of(year, month, day.id.toInt()))
+                                }
+                            }
+                        }
                     }
-                }
-            } catch (e: Exception) {
-                Log.e("Firestore", "Error fetching document: ${e.message}")
+                    onComplete(listOfDates)
+                } else
+                    onComplete(emptyList())
+                onComplete(listOfDates)
             }
-        }
-        return listOfShifts
+            .addOnFailureListener {
+                onComplete(emptyList())
+            }
     }
+//            path.update("Names", listOf("Bob", "Ari", "Dod")) // Using listOf() for Firestore
+//                .addOnSuccessListener {
+//                    Log.d("Firestore", "Names updated successfully")
+//                }
+//                .addOnFailureListener { e ->
+//                    Log.w("Firestore", "Error updating names: ", e)
+//                }
 
+//            path.get()
+//                .addOnSuccessListener { document ->
+//                        val names = document.get("Names") as? List<String>
+//                        if (names != null) {
+//                            for (name in names) {
+//                                if (name == currentUser?.displayName) {
+//                                    listOfShifts.add(date)
+//                                }
+//                            }
+//                        } else {
+//                            Log.d("Firestore", "Names field is not a list or is null")
+//                        }
+//
+//                        // If we are done iterating over the dates, invoke the callback
+//                        if (date == dates.last()) {
+//                            onComplete(listOfShifts)
+//                        }
+//                    }
+//                    .addOnFailureListener { exception ->
+//                        Log.w("Firestore", "Error getting document: ", exception)
+//
+//                        // If there's an error and we're on the last date, invoke the callback
+//                        if (date == dates.last()) {
+//                            onComplete(listOfShifts)
+//                        }
+//                    }
 
 
 
@@ -154,7 +263,7 @@ object DatabaseManeger {
         .addOnFailureListener {
             onComplete(emptyList())
         }
-    }
+}
 
     fun getLastShifts(numberOfLogs: Long): List<Shift> {
         var lastLog = mutableListOf<Shift>()
@@ -268,8 +377,83 @@ object DatabaseManeger {
                 }
         }
 
-        fun updateConstraints() {
-            TODO("Not yet implemented")
+        fun updateConstraints(checkBoxesStatus: MutableList<Boolean>) {
+            val db = FirebaseFirestore.getInstance()
+            val currentUser = auth.currentUser
+
+            currentUser?.let{
+                db.collection("Users").document(currentUser.uid).collection("Constraints").get()
+                    .addOnSuccessListener{ document->
+                        if (!document.isEmpty){
+                            val days = document.documents[0].data!!.keys.toList().zip(checkBoxesStatus)
+                            for ((day,checkBox) in days){
+                                document.documents[0].reference.update(day,checkBox)
+                            }
+                        }
+                    }
+            }
         }
 
+    fun sendChatMessage(currentMessage: String) {
+        val db = FirebaseDatabase.getInstance("https://workslate-1e401-default-rtdb.europe-west1.firebasedatabase.app")
+        getUser{ user->
+            if (user != null) {
+                val path = "${user.companyCode}/messages"
+                db.getReference(path)
+                    .push()
+                    .setValue(mapOf(
+                        "sender" to auth.currentUser?.uid,
+                        "message" to currentMessage,
+                        "timestamp" to Timestamp.now().toString()
+                    ))
+                    .addOnCompleteListener{
+                        Log.w("Messages","${currentMessage} : was sent")
+                    }
+            }
+        }
+    }
+    fun fetchMessages(onMessagesFetched: (List<Message>) -> Unit) {
+        val db = FirebaseDatabase.getInstance("https://workslate-1e401-default-rtdb.europe-west1.firebasedatabase.app")
+        getUser{user->
+            if (user!=null){
+                db.getReference("${user.companyCode}/messages")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val messages = mutableListOf<Message>()
+                        for (messageSnapshot in snapshot.children) {
+                            val sender = messageSnapshot.child("sender").value as? String ?: continue
+                            val message = messageSnapshot.child("message").value as? String ?: continue
+                            val timestamp = messageSnapshot.child("timestamp").value as? String ?: continue
+                            messages.add(Message(sender, message, timestamp))
+                        }
+                        onMessagesFetched(messages)
+                    }
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("Chat", "Failed to fetch messages: ${error.message}")
+                    }
+                })
+            }
+            }
+    }
+    fun listenForNewMessages(callback: (Message) -> Unit) {
+        val db = FirebaseDatabase.getInstance("https://workslate-1e401-default-rtdb.europe-west1.firebasedatabase.app")
+        getUser{user->
+            db.getReference("${user?.companyCode}/messages")
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                        val newMessage = snapshot.getValue(Message::class.java)
+                        if (newMessage != null) {
+                            callback(newMessage)
+                        }
+                    }
+
+                    override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+                    override fun onChildRemoved(snapshot: DataSnapshot) {}
+                    override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("DatabaseManeger", "Failed to listen for new messages: ${error.message}")
+                    }
+                })
+        }
+    }
 }

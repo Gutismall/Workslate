@@ -3,14 +3,11 @@ package com.example.workslateapp.Fragments
 import CalendarDecorator
 import DatabaseManeger
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.lifecycleScope
 import com.example.workslateapp.databinding.FragmentMainBinding
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -18,7 +15,7 @@ class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
-    private lateinit var currentMonthShifts: List<LocalDate>
+    private var currentMonthShifts = emptyList<LocalDate>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,11 +31,11 @@ class MainFragment : Fragment() {
     }
 
     private fun initViews() {
-        lifecycleScope.launch {
-            currentMonthShifts = DatabaseManeger.getUserShifts(getCurrentMonthDates())
-            Log.d("Shifts", "User has shifts on: $currentMonthShifts")
-            binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentMonthShifts, requireContext()))
-        }
+            DatabaseManeger.getUserShifts(LocalDate.now()){ listOfDates->
+                if (currentMonthShifts != listOfDates)
+                    currentMonthShifts = listOfDates
+                    binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentMonthShifts,requireContext()))
+            }
         binding.FragmentMainLLShiftCards.visibility = View.INVISIBLE
         binding.FragmentMainCalendar.setOnDateChangedListener { _, date, selected ->
             if (selected) {
@@ -55,20 +52,12 @@ class MainFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun getCurrentMonthDates(): List<LocalDate> {
-        val currentDate = LocalDate.now()
-        val startOfMonth = currentDate.withDayOfMonth(1)
-        val endOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth())
-        val dates = mutableListOf<LocalDate>()
-
-        var date = startOfMonth
-        while (!date.isAfter(endOfMonth)) {
-            dates.add(date)
-            date = date.plusDays(1)
+        binding.FragmentMainCalendar.setOnMonthChangedListener { widget, date ->
+            DatabaseManeger.getUserShifts(LocalDate.of(date.year,date.month,date.day)){ listOfDates->
+                if (currentMonthShifts != listOfDates)
+                    currentMonthShifts = listOfDates
+                binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentMonthShifts,requireContext()))
+            }
         }
-
-        return dates
     }
 }

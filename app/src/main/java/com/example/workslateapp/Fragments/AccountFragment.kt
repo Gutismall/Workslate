@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.workslateapp.Animations.LoginAnimationActivity
 import com.example.workslateapp.LogInActivity
 import com.example.workslateapp.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -40,7 +39,7 @@ class AccountFragment : Fragment() {
             if (user != null) {
                 binding.FragmentAccountEmailText.text = "Account Email:\n${user.email}"
                 binding.FragmentAccountPhoneNumber.text = "Phone Number:\n${user.phoneNumber}"
-                binding.FragmentAccountCompanyCode.text = "Company Code:\n${user.CompanyCode}"
+                binding.FragmentAccountCompanyCode.text = "Company Code:\n${user.companyCode}"
             }
         }
         binding.FragmentAccountLogRecyclerView.adapter = AccountLogAdapter(DatabaseManeger.getLastShifts(4))

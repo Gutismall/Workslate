@@ -10,7 +10,7 @@ import com.example.workslateapp.Fragments.AccountFragment
 import com.example.workslateapp.Fragments.ConstraintsFragment
 import com.example.workslateapp.Fragments.LogFragment
 import com.example.workslateapp.Fragments.MainFragment
-import com.example.workslateapp.Fragments.MassagesFragment
+import com.example.workslateapp.Fragments.MessagesFragment
 import com.example.workslateapp.databinding.ActivityMainBinding
 
 
@@ -28,24 +28,38 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun initView() {
+        val mainFragment = MainFragment()
+        val constraintsFragment = ConstraintsFragment()
+        val logFragment = LogFragment()
+        val messagesFragment = MessagesFragment()
+        val accountFragment = AccountFragment()
+
         supportFragmentManager.beginTransaction()
-            .replace(R.id.Main_Fragment, MainFragment())
+            .add(R.id.Main_Fragment, mainFragment, "MainFragment")
+            .add(R.id.Main_Fragment, constraintsFragment, "ConstraintsFragment")
+            .add(R.id.Main_Fragment, logFragment, "LogFragment")
+            .add(R.id.Main_Fragment, messagesFragment, "MassagesFragment")
+            .add(R.id.Main_Fragment, accountFragment, "AccountFragment")
+            .hide(constraintsFragment)
+            .hide(logFragment)
+            .hide(messagesFragment)
+            .hide(accountFragment)
             .commit()
+
         binding.MainBottomBar.setOnNavigationItemSelectedListener { item ->
-            var fragment: Fragment? = null
             when (item.itemId) {
-                R.id.navigation_home -> { fragment = MainFragment() }
-                R.id.navigation_constraints -> fragment = ConstraintsFragment()
-                R.id.navigation_log -> fragment = LogFragment()
-                R.id.navigation_Massages -> fragment = MassagesFragment()
+                R.id.navigation_home -> showFragment(mainFragment)
+                R.id.navigation_constraints -> showFragment(constraintsFragment)
+                R.id.navigation_log -> showFragment(logFragment)
+                R.id.navigation_Massages -> showFragment(messagesFragment)
             }
-            loadFragment(fragment!!)
             true
         }
+
         binding.MainTopBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.topNav_account -> {
-                    loadFragment(AccountFragment())
+                    showFragment(accountFragment)
                     true
                 }
                 else -> false
@@ -53,16 +67,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadFragment(fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.add(R.id.Main_Fragment, fragment)
-        transaction.setCustomAnimations(
-            android.R.anim.slide_in_left,  // Enter animation
-            android.R.anim.slide_out_right, // Exit animation
-            R.anim.fade_in, // Pop Enter animation (when coming back)
-            R.anim.fade_out // Pop Exit animation (when going back)
-        )
-        transaction.commit()
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction().apply {
+            supportFragmentManager.fragments.forEach { hide(it) }
+            show(fragment)
+            commit()
+        }
     }
 
 
