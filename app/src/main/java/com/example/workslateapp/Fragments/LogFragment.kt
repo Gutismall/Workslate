@@ -52,16 +52,19 @@ class LogFragment : Fragment(), LocationCallback {
 
 
     private fun initViews() {
-        val lastlog = DatabaseManeger.getLastShifts(1)
-        if (lastlog.isNotEmpty()){
-            if (lastlog[0].timeStamp.second.toString().isNotBlank()){
-                binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastlog[0].timeStamp.second}\n${lastlog[0].location.second}"
+        DatabaseManeger.getLastShifts(1){lastLog->
+            if (lastLog.isNotEmpty()){
+                if (lastLog[0].timeStamp.second.toString().isNotBlank()){
+                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastLog[0].timeStamp.second}\n${lastLog[0].location.second}"
+                }
+                else
+                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastLog[0].timeStamp.first}\n${lastLog[0].location.first}"
             }
             else
-                binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastlog[0].timeStamp.first}\n${lastlog[0].location.first}"
+                binding.FragmentLogLastLogTxt.text = "Last Log:\nNo Logs Yet"
+
         }
-        else
-            binding.FragmentLogLastLogTxt.text = "Last Log:\nNo Logs Yet"
+
 
         binding.FragmentLogLogInBtn.setOnClickListener { logIn()}
         binding.FragmentLogLogOutBtn.setOnClickListener { logOut()}
@@ -70,7 +73,7 @@ class LogFragment : Fragment(), LocationCallback {
     private fun logIn() {
         getCurrentLocation { currentLocation ->
             val currentTime = Timestamp.now()
-            DatabaseManeger.addLogInShift(currentTime, currentLocation) { success, message ->
+            DatabaseManeger.addLogInShift(LocalDate.now(), currentLocation) { success, message ->
                 if (success) {
                     binding.FragmentLogLastLogTxt.text = "Last Log:\n$currentTime\n$currentLocation"
                 } else {
@@ -83,7 +86,7 @@ class LogFragment : Fragment(), LocationCallback {
     private fun logOut() {
         getCurrentLocation { currentLocation ->
             val currentTime = Timestamp.now()
-            DatabaseManeger.addLogOutShift(currentTime, currentLocation) { success, message ->
+            DatabaseManeger.addLogOutShift(LocalDate.now(), currentLocation) { success, message ->
                 if (success) {
                     binding.FragmentLogLastLogTxt.text = "Last Log:\n$currentTime\n$currentLocation"
                 } else {

@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private fun showFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().apply {
             supportFragmentManager.fragments.forEach { hide(it) }
+            addToBackStack(null)
             show(fragment)
             commit()
         }

@@ -45,9 +45,9 @@ class MessagesFragment : Fragment() {
 
         // Listen for real-time updates
         DatabaseManeger.listenForNewMessages { newMessage ->
-            messages.add(newMessage)
-            chatAdapter.notifyItemInserted(messages.size - 1)
-            binding.FragmentMessagesChatRecyclerView.scrollToPosition(messages.size - 1)
+            messages.add(0,newMessage)
+            chatAdapter.notifyItemInserted(0)
+            binding.FragmentMessagesChatRecyclerView.scrollToPosition(0)
         }
 
         // Set up click listeners

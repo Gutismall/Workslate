@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.workslateapp.DataClasses.Shift
 import com.example.workslateapp.LogInActivity
 import com.example.workslateapp.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -17,6 +19,8 @@ class AccountFragment : Fragment() {
 
     private var _binding: FragmentAccountBinding? = null
     private val binding get() = _binding!!
+    private lateinit var accountLogAdapter: AccountLogAdapter
+    private var listOfShifts = mutableListOf<Shift>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +37,16 @@ class AccountFragment : Fragment() {
         initViews()
         return binding.root
     }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.FragmentAccountLogRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        accountLogAdapter = AccountLogAdapter(listOfShifts)
+        binding.FragmentAccountLogRecyclerView.adapter = accountLogAdapter
 
-    private fun initViews() {
+        DatabaseManeger.getLastShifts(4){fetchListOfShifts->
+            listOfShifts.clear()
+            listOfShifts.addAll(fetchListOfShifts)
+            accountLogAdapter.notifyDataSetChanged()
+        }
         DatabaseManeger.getUser(){ user ->
             if (user != null) {
                 binding.FragmentAccountEmailText.text = "Account Email:\n${user.email}"
@@ -42,8 +54,9 @@ class AccountFragment : Fragment() {
                 binding.FragmentAccountCompanyCode.text = "Company Code:\n${user.companyCode}"
             }
         }
-        binding.FragmentAccountLogRecyclerView.adapter = AccountLogAdapter(DatabaseManeger.getLastShifts(4))
+    }
 
+    private fun initViews() {
         binding.FragmentAccountSignOutBtn.setOnClickListener{ signOut()}
     }
 

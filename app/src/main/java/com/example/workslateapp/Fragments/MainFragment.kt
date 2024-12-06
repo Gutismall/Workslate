@@ -15,7 +15,6 @@ class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
-    private var currentMonthShifts = emptyList<LocalDate>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,13 +28,15 @@ class MainFragment : Fragment() {
         initViews()
         return binding.root
     }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        DatabaseManeger.getMonthlyArrangementsOfUser(LocalDate.now()){ listOfDates->
+            updateCalendarDecorator(listOfDates)
+        }
+        initViews()
+    }
 
     private fun initViews() {
-            DatabaseManeger.getUserShifts(LocalDate.now()){ listOfDates->
-                if (currentMonthShifts != listOfDates)
-                    currentMonthShifts = listOfDates
-                    binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentMonthShifts,requireContext()))
-            }
+
         binding.FragmentMainLLShiftCards.visibility = View.INVISIBLE
         binding.FragmentMainCalendar.setOnDateChangedListener { _, date, selected ->
             if (selected) {
@@ -53,11 +54,15 @@ class MainFragment : Fragment() {
             }
         }
         binding.FragmentMainCalendar.setOnMonthChangedListener { widget, date ->
-            DatabaseManeger.getUserShifts(LocalDate.of(date.year,date.month,date.day)){ listOfDates->
-                if (currentMonthShifts != listOfDates)
-                    currentMonthShifts = listOfDates
-                binding.FragmentMainCalendar.addDecorator(CalendarDecorator(currentMonthShifts,requireContext()))
+            DatabaseManeger.getMonthlyArrangementsOfUser(LocalDate.of(date.year,date.month + 1,date.day)){ listOfDates ->
+                updateCalendarDecorator(listOfDates)
             }
         }
     }
+    private fun updateCalendarDecorator(currentMonthArrangements : List<LocalDate>){
+        val calendarDecorator = CalendarDecorator(currentMonthArrangements,requireContext())
+        binding.FragmentMainCalendar.addDecorator(calendarDecorator)
+
+    }
 }
+

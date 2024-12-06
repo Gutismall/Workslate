@@ -2,7 +2,6 @@
 import android.util.Log
 import com.example.workslateapp.DataClasses.Message
 import com.example.workslateapp.DataClasses.Shift
-import com.example.workslateapp.DataClasses.ShiftType
 import com.example.workslateapp.DataClasses.User
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -15,8 +14,9 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
+import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.LocalTime
+import java.util.Date
 
 
 object DatabaseManeger {
@@ -33,7 +33,6 @@ object DatabaseManeger {
                 "Date.LogIn" to Timestamp.now(),
                 "Location.LogIn" to location
             )
-            // Add log in shift to the 'logInShifts' subcollection
             db.collection("users").document(userId).collection("Shifts")
                 .document(date.year.toString()).collection(date.monthValue.toString())
                 .document(date.dayOfMonth.toString()).set(data)
@@ -58,8 +57,6 @@ object DatabaseManeger {
                 "Date.LogOut" to Timestamp.now(),
                 "Location.LogOut" to location
             )
-
-            // Add log out shift to the 'logOutShifts' subcollection
             db.collection("users").document(userId).collection("Shifts")
                 .document(date.year.toString()).collection(date.monthValue.toString())
                 .document(date.dayOfMonth.toString()).set(data)
@@ -74,7 +71,7 @@ object DatabaseManeger {
         }
     }
 
-    //write me a function that will get all the users personal information
+    //Get users information
     fun getUser(onComplete: (User?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
@@ -84,7 +81,8 @@ object DatabaseManeger {
                 .addOnSuccessListener { document ->
                     val userInfo = User(
                         email = user.email.toString(),
-                        name = document.getString("name").orEmpty(),
+                        firstName = document.getString("firstName").orEmpty(),
+                        lastName = document.getString("lastName").orEmpty(),
                         phoneNumber = document.getString("phoneNumber").orEmpty(),
                         companyCode = document.getString("companyCode").orEmpty()
                     )
@@ -99,18 +97,12 @@ object DatabaseManeger {
         }
     }
 
-    fun getUserShifts(curentDate: LocalDate,onComplete: (List<LocalDate>) -> Unit) {
+    fun getMonthlyArrangementsOfUser(currentDate: LocalDate,onComplete: (List<LocalDate>) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
         val listOfDates = mutableListOf<LocalDate>()
 
-        val year = curentDate.year
-        val month = curentDate.monthValue
-
-        val path = db.collection("Arrangements").document(year.toString())
-            .collection(month.toString())
-
-        path.get()
+        db.collection("Arrangements").document(currentDate.year.toString()).collection(currentDate.monthValue.toString()).get()
             .addOnSuccessListener { monthDates ->
                 if (monthDates != null) {
                     monthDates.documents.forEach() { day ->
@@ -118,7 +110,7 @@ object DatabaseManeger {
                         if (names != null) {
                             for (name in names) {
                                 if (name == currentUser?.displayName) {
-                                    listOfDates.add(LocalDate.of(year, month, day.id.toInt()))
+                                    listOfDates.add(LocalDate.of(currentDate.year, currentDate.monthValue, day.id.toInt()))
                                 }
                             }
                         }
@@ -126,7 +118,6 @@ object DatabaseManeger {
                     onComplete(listOfDates)
                 } else
                     onComplete(emptyList())
-                onComplete(listOfDates)
             }
             .addOnFailureListener {
                 onComplete(emptyList())
@@ -149,17 +140,18 @@ object DatabaseManeger {
         .addOnFailureListener {
             onComplete(emptyList())
         }
-}
+    }
 
-    fun getLastShifts(numberOfLogs: Long): List<Shift> {
-        var lastLog = mutableListOf<Shift>()
+    fun getLastShifts(numberOfLogs: Long, onComplete: (List<Shift>) -> Unit) {
+        val lastLog = mutableListOf<Shift>()
         val db = FirebaseFirestore.getInstance()
         val currentUser = auth.currentUser
+        val currentDate = LocalDate.now()
 
         currentUser?.let {
-            db.collection("Users").document(currentUser.uid)
-                .collection("Shifts")
-                .orderBy("Date.logIn", Query.Direction.DESCENDING)
+            db.collection("Users").document(currentUser.uid).collection("Shifts")
+                .document(currentDate.year.toString()).collection(currentDate.monthValue.toString())
+                .orderBy("Date.LogIn", Query.Direction.DESCENDING)
                 .limit(numberOfLogs).get()
                 .addOnSuccessListener { shifts ->
                     if (!shifts.isEmpty) {
@@ -173,124 +165,118 @@ object DatabaseManeger {
                                     location = Pair(
                                         shift.get("Location.LogIn") as GeoPoint,
                                         shift.get("Location.LogOut") as GeoPoint
-                                    ),
-                                    shiftType = shift.get("ShiftType") as ShiftType
+                                    )
                                 )
                             )
                         }
                     }
+                    onComplete(lastLog)
                 }
+                .addOnFailureListener {
+                    onComplete(emptyList())
+                }
+        } ?: run {
+            onComplete(emptyList())
         }
-        return lastLog
     }
 
 
-        fun createUser(
-            firstName: String,
-            lastName: String,
-            phoneNumber: String,
-            email: String,
-            password: String,
-            companyCode: String,
-            onSuccess: () -> Unit
-        ) {
-            val db = FirebaseFirestore.getInstance()
+    fun createUser(firstName: String, lastName: String, phoneNumber: String, email: String, password: String, companyCode: String, onSuccess: () -> Unit) {
+        val db = FirebaseFirestore.getInstance()
 
-            // Step 1: Create a new user in Firebase Authentication
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // User created successfully in Firebase Authentication
-                        val firebaseUser = task.result.user
-                        val uid = firebaseUser?.uid
+        // Step 1: Create a new user in Firebase Authentication
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // User created successfully in Firebase Authentication
+                    val firebaseUser = task.result.user
+                    val uid = firebaseUser?.uid
 
-                        if (firebaseUser != null) {
-                            // Step 2: Update the user's displayName in Firebase Authentication
-                            val profileUpdates = userProfileChangeRequest {
-                                displayName = firstName
-                            }
+                    if (firebaseUser != null) {
+                        // Step 2: Update the user's displayName in Firebase Authentication
+                        val profileUpdates = userProfileChangeRequest {
+                            displayName = firstName
+                        }
 
-                            firebaseUser.updateProfile(profileUpdates)
-                                .addOnCompleteListener { profileTask ->
-                                    if (profileTask.isSuccessful) {
-                                        Log.d(
-                                            "CreateUser",
-                                            "User displayName updated to: $firstName"
-                                        )
-                                    } else {
-                                        Log.e(
-                                            "CreateUser",
-                                            "Failed to update displayName: ${profileTask.exception?.message}"
-                                        )
-                                    }
+                        firebaseUser.updateProfile(profileUpdates)
+                            .addOnCompleteListener { profileTask ->
+                                if (profileTask.isSuccessful) {
+                                    Log.d("CreateUser", "User displayName updated to: $firstName")
+                                } else {
+                                    Log.e("CreateUser", "Failed to update displayName: ${profileTask.exception?.message}")
                                 }
-
-                            // Step 3: Add user details to Firestore
-                            val userMap = hashMapOf(
-                                "firstName" to firstName,
-                                "lastName" to lastName,
-                                "phoneNumber" to phoneNumber,
-                                "companyCode" to companyCode
-                            )
-
-                            if (uid != null) {
-                                db.collection("Users").document(uid)
-                                    .set(userMap)
-                                    .addOnSuccessListener {
-                                        // Successfully added to Firestore
-                                        Log.d("CreateUser", "User added to Firestore successfully")
-                                        onSuccess() // Invoke the success callback
-                                    }
-                                    .addOnFailureListener { e ->
-                                        // Firestore operation failed
-                                        Log.e(
-                                            "CreateUser",
-                                            "Failed to add user to Firestore: ${e.message}"
-                                        )
-                                    }
                             }
-                        } else {
-                            Log.e(
-                                "CreateUser",
-                                "Failed to retrieve UID from Firebase Authentication"
+
+                        // Step 3: Add user details to Firestore
+                        val userMap = hashMapOf(
+                            "firstName" to firstName,
+                            "lastName" to lastName,
+                            "phoneNumber" to phoneNumber,
+                            "companyCode" to companyCode,
+                            "WeeklyConstraints" to mapOf(
+                                "1" to listOf(false, false, false),  // Use listOf() for lists
+                                "2" to listOf(false, false, false),
+                                "3" to listOf(false, false, false),
+                                "4" to listOf(false, false, false),
+                                "5" to listOf(false, false, false),
+                                "6" to listOf(false, false, false),
+                                "7" to listOf(false, false, false)
                             )
+                        )
+
+                        if (uid != null) {
+                            db.collection("Users").document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener {
+                                    // Successfully added to Firestore
+                                    Log.d("CreateUser", "User added to Firestore successfully")
+                                    onSuccess()
+                                }
+                                .addOnFailureListener { e ->
+                                    // Firestore operation failed
+                                    Log.e("CreateUser", "Failed to add user to Firestore: ${e.message}"
+                                    )
+                                }
                         }
                     } else {
-                        // Firebase Authentication user creation failed
-                        val exception = task.exception
-                        Log.e("CreateUser", "User creation failed: ${exception?.message}")
+                        Log.e("CreateUser", "Failed to retrieve UID from Firebase Authentication")
                     }
+                } else {
+                    // Firebase Authentication user creation failed
+                    val exception = task.exception
+                    Log.e("CreateUser", "User creation failed: ${exception?.message}")
                 }
-        }
-
-        fun updateConstraints(checkBoxesStatus: MutableList<Boolean>) {
-            val db = FirebaseFirestore.getInstance()
-            val currentUser = auth.currentUser
-
-            currentUser?.let{
-                db.collection("Users").document(currentUser.uid).collection("Constraints").get()
-                    .addOnSuccessListener{ document->
-                        if (!document.isEmpty){
-                            val days = document.documents[0].data!!.keys.toList().zip(checkBoxesStatus)
-                            for ((day,checkBox) in days){
-                                document.documents[0].reference.update(day,checkBox)
-                            }
-                        }
-                    }
             }
-        }
+    }
+
+    fun updateConstraints(checkBoxesStatus: MutableMap<String, List<Boolean>>, onComplete: (Boolean) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val currentUser = auth.currentUser
+
+    currentUser?.let {
+        db.collection("Users").document(currentUser.uid).update(mapOf("WeeklyConstraints" to checkBoxesStatus))
+            .addOnSuccessListener {
+                onComplete(true)
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
+    } ?: run {
+        onComplete(false)
+    }
+}
 
     fun sendChatMessage(currentMessage: String) {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm")
         val db = FirebaseDatabase.getInstance("https://workslate-1e401-default-rtdb.europe-west1.firebasedatabase.app")
         getUser{ user->
             if (user != null) {
                 val path = "${user.companyCode}/messages"
-                db.getReference(path)
-                    .push()
+                db.getReference(path).push()
                     .setValue(mapOf(
-                        "sender" to user.name,
+                        "sender" to "${user.firstName} ${user.lastName}",
                         "message" to currentMessage,
-                        "timestamp" to Timestamp.now().toString()
+                        "timestamp" to dateFormat.format(Date())
                     ))
                     .addOnCompleteListener{
                         Log.w("Messages","${currentMessage} : was sent")
