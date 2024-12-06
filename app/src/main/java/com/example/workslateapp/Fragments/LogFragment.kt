@@ -25,8 +25,11 @@ import com.google.android.material.textview.MaterialTextView
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Date
+import java.util.Locale
 
 class LogFragment : Fragment(), LocationCallback {
 
@@ -52,19 +55,22 @@ class LogFragment : Fragment(), LocationCallback {
 
 
     private fun initViews() {
-        DatabaseManeger.getLastShifts(1){lastLog->
-            if (lastLog.isNotEmpty()){
-                if (lastLog[0].timeStamp.second.toString().isNotBlank()){
-                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastLog[0].timeStamp.second}\n${lastLog[0].location.second}"
+        DatabaseManeger.getLastShifts(1) { lastLog ->
+        lastLog.let {
+            if (it.isNotEmpty()) {
+                val timestampSecond = it[0].timeStamp.second
+                val timestampFirst = it[0].timeStamp.first
+
+                if (timestampSecond != null) {
+                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${timestampSecond.toDate()}"
+                } else {
+                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${timestampFirst!!.toDate()}\n"
                 }
-                else
-                    binding.FragmentLogLastLogTxt.text = "Last Log:\n${lastLog[0].timeStamp.first}\n${lastLog[0].location.first}"
-            }
-            else
+            } else {
                 binding.FragmentLogLastLogTxt.text = "Last Log:\nNo Logs Yet"
-
+            }
         }
-
+    }
 
         binding.FragmentLogLogInBtn.setOnClickListener { logIn()}
         binding.FragmentLogLogOutBtn.setOnClickListener { logOut()}
@@ -72,10 +78,9 @@ class LogFragment : Fragment(), LocationCallback {
 
     private fun logIn() {
         getCurrentLocation { currentLocation ->
-            val currentTime = Timestamp.now()
             DatabaseManeger.addLogInShift(LocalDate.now(), currentLocation) { success, message ->
                 if (success) {
-                    binding.FragmentLogLastLogTxt.text = "Last Log:\n$currentTime\n$currentLocation"
+                    Toast.makeText(requireContext(), "Log In successful", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(requireContext(), "Error: $message", Toast.LENGTH_LONG).show()
                 }
@@ -85,10 +90,9 @@ class LogFragment : Fragment(), LocationCallback {
 
     private fun logOut() {
         getCurrentLocation { currentLocation ->
-            val currentTime = Timestamp.now()
             DatabaseManeger.addLogOutShift(LocalDate.now(), currentLocation) { success, message ->
                 if (success) {
-                    binding.FragmentLogLastLogTxt.text = "Last Log:\n$currentTime\n$currentLocation"
+                    Toast.makeText(requireContext(), "Log Out successful", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(requireContext(), "Error: $message", Toast.LENGTH_LONG).show()
                 }
@@ -131,6 +135,12 @@ class LogFragment : Fragment(), LocationCallback {
     override fun onLocationResult(latitude: Double, longitude: Double) {
         this.latitude = latitude
         this.longitude = longitude
+    }
+
+    private fun refreshFragment() {
+        val fragmentManager = parentFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.detach(this).attach(this).commit()
     }
 
     companion object {

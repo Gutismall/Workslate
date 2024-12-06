@@ -14,6 +14,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
@@ -30,12 +31,16 @@ object DatabaseManeger {
         currentUser?.let { user ->
             val userId = user.uid
             val data = mapOf(
-                "Date.LogIn" to Timestamp.now(),
-                "Location.LogIn" to location
+                "Date" to mapOf(
+                    "LogIn" to Timestamp.now()
+                ),
+                "Location" to mapOf(
+                        "LogIn" to location
+                )
             )
-            db.collection("users").document(userId).collection("Shifts")
+            db.collection("Users").document(userId).collection("Shifts")
                 .document(date.year.toString()).collection(date.monthValue.toString())
-                .document(date.dayOfMonth.toString()).set(data)
+                .document(date.dayOfMonth.toString()).set(data, SetOptions.merge())
                 .addOnSuccessListener {
                     onComplete(true, null)
                 }
@@ -54,12 +59,16 @@ object DatabaseManeger {
         currentUser?.let { user ->
             val userId = user.uid
             val data = mapOf(
-                "Date.LogOut" to Timestamp.now(),
-                "Location.LogOut" to location
+                "Date" to mapOf(
+                    "LogOut" to Timestamp.now()
+                ),
+                "Location" to mapOf(
+                    "LogOut" to location
+                )
             )
-            db.collection("users").document(userId).collection("Shifts")
+            db.collection("Users").document(userId).collection("Shifts")
                 .document(date.year.toString()).collection(date.monthValue.toString())
-                .document(date.dayOfMonth.toString()).set(data)
+                .document(date.dayOfMonth.toString()).set(data,SetOptions.merge())
                 .addOnSuccessListener {
                     onComplete(true, null)
                 }
@@ -158,14 +167,8 @@ object DatabaseManeger {
                         for (shift in shifts) {
                             lastLog.add(
                                 Shift(
-                                    timeStamp = Pair(
-                                        (shift.get("Date.LogIn") as Timestamp),
-                                        shift.get("Date.LogOut") as Timestamp
-                                    ),
-                                    location = Pair(
-                                        shift.get("Location.LogIn") as GeoPoint,
-                                        shift.get("Location.LogOut") as GeoPoint
-                                    )
+                                    timeStamp = Pair((shift.get("Date.LogIn") as Timestamp), shift.get("Date.LogOut") as? Timestamp),
+                                    location = Pair(shift.get("Location.LogIn") as GeoPoint, shift.get("Location.LogOut") as? GeoPoint)
                                 )
                             )
                         }

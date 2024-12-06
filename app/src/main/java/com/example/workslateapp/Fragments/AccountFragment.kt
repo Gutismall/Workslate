@@ -41,17 +41,23 @@ class AccountFragment : Fragment() {
         binding.FragmentAccountLogRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         accountLogAdapter = AccountLogAdapter(listOfShifts)
         binding.FragmentAccountLogRecyclerView.adapter = accountLogAdapter
-
-        DatabaseManeger.getLastShifts(4){fetchListOfShifts->
-            listOfShifts.clear()
-            listOfShifts.addAll(fetchListOfShifts)
-            accountLogAdapter.notifyDataSetChanged()
-        }
         DatabaseManeger.getUser(){ user ->
             if (user != null) {
                 binding.FragmentAccountEmailText.text = "Account Email:\n${user.email}"
                 binding.FragmentAccountPhoneNumber.text = "Phone Number:\n${user.phoneNumber}"
                 binding.FragmentAccountCompanyCode.text = "Company Code:\n${user.companyCode}"
+            }
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            // Fragment is now visible
+            DatabaseManeger.getLastShifts(4) { fetchListOfShifts ->
+                listOfShifts.clear()
+                listOfShifts.addAll(fetchListOfShifts)
+                accountLogAdapter.notifyDataSetChanged()
             }
         }
     }
