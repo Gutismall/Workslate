@@ -18,7 +18,6 @@ class MessagesFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // No need to fetch messages here; handle this in onViewCreated
     }
 
     override fun onCreateView(

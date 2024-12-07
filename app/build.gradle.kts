@@ -1,7 +1,10 @@
+import com.android.build.api.variant.BuildConfigField
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -16,8 +19,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String","GoogleKey","")
     }
     buildFeatures{
+        buildConfig = true
         viewBinding{
             enable = true
         }
@@ -57,6 +62,7 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.material)
     implementation(libs.firebase.database.ktx)
+    implementation(libs.places)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -6,6 +6,5 @@ data class Message(
     val message: String = "",
     val timestamp: String = ""
 ) {
-    // No-argument constructor for Firebase
     constructor() : this("", "", "")
 }

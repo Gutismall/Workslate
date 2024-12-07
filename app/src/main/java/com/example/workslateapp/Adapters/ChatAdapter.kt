@@ -10,6 +10,7 @@ class ChatAdapter(private val messages: List<Message>) :
     inner class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val messageText: TextView = view.findViewById(R.id.Adapter_Chat_Message)
         val senderText: TextView = view.findViewById(R.id.Adapter_Chat_Sender)
+        val timestamp: TextView = view.findViewById(R.id.Adapter_Chat_Timestamp)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
@@ -22,6 +23,7 @@ class ChatAdapter(private val messages: List<Message>) :
         val message = messages[position]
         holder.messageText.text = message.message
         holder.senderText.text = message.sender
+        holder.timestamp.text = message.timestamp
     }
 
     override fun getItemCount(): Int = messages.size

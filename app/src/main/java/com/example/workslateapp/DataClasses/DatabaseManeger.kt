@@ -108,47 +108,51 @@ object DatabaseManeger {
 
     fun getMonthlyArrangementsOfUser(currentDate: LocalDate,onComplete: (List<LocalDate>) -> Unit) {
         val db = FirebaseFirestore.getInstance()
-        val currentUser = auth.currentUser
         val listOfDates = mutableListOf<LocalDate>()
 
-        db.collection("Arrangements").document(currentDate.year.toString()).collection(currentDate.monthValue.toString()).get()
+        getUser { user ->
+        db.collection("Arrangements").document(user!!.companyCode)
+            .collection(currentDate.year.toString()).document(currentDate.monthValue.toString()).get()
             .addOnSuccessListener { monthDates ->
                 if (monthDates != null) {
-                    monthDates.documents.forEach() { day ->
-                        val names = day.get("Names") as? List<String>
-                        if (names != null) {
-                            for (name in names) {
-                                if (name == currentUser?.displayName) {
-                                    listOfDates.add(LocalDate.of(currentDate.year, currentDate.monthValue, day.id.toInt()))
-                                }
+                    monthDates.data?.forEach { (dayKey, dayValue) ->
+                        val dayArray = dayValue as? List<String>
+                        dayArray?.forEach { name ->
+                            if (name == user.firstName) {
+                                listOfDates.add(LocalDate.of(currentDate.year, currentDate.monthValue, dayKey.toInt()))
                             }
                         }
                     }
                     onComplete(listOfDates)
-                } else
+                } else {
                     onComplete(emptyList())
+                }
             }
             .addOnFailureListener {
                 onComplete(emptyList())
             }
+        }
     }
 
     fun getArrangementByDate(date: LocalDate, onComplete: (List<String>) -> Unit) {
-    val db = FirebaseFirestore.getInstance()
+        val db = FirebaseFirestore.getInstance()
+        getUser{user->
+            db.collection("Arrangements").document(user!!.companyCode)
+                .collection(date.year.toString()).document(date.monthValue.toString()).get()
+                .addOnSuccessListener { day ->
+                    if (day != null) {
+                        val names = day.get(date.dayOfMonth.toString()) as List<String>
+                        onComplete(names)
+                    } else {
+                        onComplete(emptyList())
+                    }
+                }
+                .addOnFailureListener {
+                    onComplete(emptyList())
+                }
+        }
 
-    db.collection("Arrangements").document(date.year.toString())
-        .collection(date.monthValue.toString()).document(date.dayOfMonth.toString()).get()
-        .addOnSuccessListener { day ->
-            if (day.exists()) {
-                val names = day.get("Names") as? List<String> ?: emptyList()
-                onComplete(names)
-            } else {
-                onComplete(emptyList())
-            }
-        }
-        .addOnFailureListener {
-            onComplete(emptyList())
-        }
+
     }
 
     fun getLastShifts(numberOfLogs: Long, onComplete: (List<Shift>) -> Unit) {

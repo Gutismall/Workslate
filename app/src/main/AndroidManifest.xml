@@ -19,7 +19,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAO6fZLTSISVcVU5EbSHXMTsRHnPzXI3Ig" />
+            android:value="${GoogleKey}" />
 
         <activity
             android:name=".Animations.LoginAnimationActivity"
