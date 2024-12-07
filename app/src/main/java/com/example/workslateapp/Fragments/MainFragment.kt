@@ -44,9 +44,9 @@ class MainFragment : Fragment() {
                     if (shiftNames.isNotEmpty()) {
                         binding.FragmentMainLLShiftCards.visibility = View.VISIBLE
                         binding.FragmentMainSelectedDateShifts.text = "Selected Date: ${date.day}/${date.month}/${date.year}"
-                        binding.FragmentMainMorningShiftCardName.text = "Morning Shift: ${shiftNames[0]}"
-                        binding.FragmentMainAfternoonShiftCardName.text = "Afternoon Shift: ${shiftNames[1]}"
-                        binding.FragmentMainNightShiftCardName.text = "Night Shift: ${shiftNames[2]}"
+                        binding.FragmentMainMorningShiftCardName.text = "Morning: ${shiftNames[0]}"
+                        binding.FragmentMainAfternoonShiftCardName.text = "Afternoon: ${shiftNames[1]}"
+                        binding.FragmentMainNightShiftCardName.text = "Night: ${shiftNames[2]}"
                     } else {
                         binding.FragmentMainLLShiftCards.visibility = View.INVISIBLE
                     }

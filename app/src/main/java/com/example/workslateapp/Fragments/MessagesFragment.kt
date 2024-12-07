@@ -31,7 +31,11 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.FragmentMessagesChatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.FragmentMessagesChatRecyclerView.layoutManager = LinearLayoutManager(
+            requireContext(),
+            LinearLayoutManager.VERTICAL,
+            true
+        )
 
         chatAdapter = ChatAdapter(messages)
         binding.FragmentMessagesChatRecyclerView.adapter = chatAdapter
